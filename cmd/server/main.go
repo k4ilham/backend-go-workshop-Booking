@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"time"
 	"strings"
+	"time"
 
 	"be-golang/internal/app"
 	"be-golang/internal/config"
@@ -15,7 +15,7 @@ import (
 func main() {
 	loadEnvFile(".env")
 	cfg := config.Config{
-		PostgresDSN:    os.Getenv("POSTGRES_DSN"),
+		PostgresDSN:    firstNonEmpty(os.Getenv("POSTGRES_DSN"), os.Getenv("DATABASE_URL")),
 		JWTSecret:      os.Getenv("JWT_SECRET"),
 		TursoURL:       os.Getenv("TURSO_URL"),
 		TursoToken:     os.Getenv("TURSO_TOKEN"),
@@ -23,6 +23,9 @@ func main() {
 		ServerAddr:     envString("SERVER_ADDR", ":8080"),
 		TokenTTL:       envDuration("TOKEN_TTL", time.Hour*24),
 		AdminOnlyPaths: []string{"/admin", "/services"},
+	}
+	if p := os.Getenv("PORT"); p != "" {
+		cfg.ServerAddr = ":" + p
 	}
 	if cfg.PostgresDSN == "" || cfg.JWTSecret == "" {
 		log.Fatal("missing required environment variables")
@@ -76,4 +79,13 @@ func loadEnvFile(path string) {
 		}
 		_ = os.Setenv(k, v)
 	}
+}
+
+func firstNonEmpty(values ...string) string {
+	for _, v := range values {
+		if v != "" {
+			return v
+		}
+	}
+	return ""
 }
