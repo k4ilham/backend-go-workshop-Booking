@@ -24,6 +24,7 @@ func Run(cfg config.Config) error {
 	j := util.NewJWT(cfg.JWTSecret)
 
 	auth := usecase.NewAuthLogin(conn.Users(), logAdapter, j, cfg.TokenTTL)
+	reg := usecase.NewAdminRegister(conn.Users(), logAdapter)
 	bc := usecase.NewBookingCreate(conn.Bookings(), notifier, logAdapter)
 	bl := usecase.NewBookingList(conn.Bookings())
 	ds := usecase.NewDashboardStats(conn.Bookings())
@@ -32,7 +33,7 @@ func Run(cfg config.Config) error {
 	sla := usecase.NewServiceListActive(conn.Services())
 
 	app := fb.New()
-	handlers := adapterfiber.NewHandlers(auth, bc, bl, ds, sc, sd, sla, j)
+	handlers := adapterfiber.NewHandlers(auth, reg, bc, bl, ds, sc, sd, sla, j)
 	handlers.Register(app)
 	log.Println("server listening on", cfg.ServerAddr)
 	return app.Listen(cfg.ServerAddr)

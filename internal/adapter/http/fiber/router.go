@@ -13,6 +13,7 @@ import (
 
 type Handlers struct {
 	authLogin         *usecase.AuthLogin
+	adminRegister     *usecase.AdminRegister
 	bookingCreate     *usecase.BookingCreate
 	bookingList       *usecase.BookingList
 	dashboardStats    *usecase.DashboardStats
@@ -22,9 +23,10 @@ type Handlers struct {
 	jwt               *util.JWT
 }
 
-func NewHandlers(auth *usecase.AuthLogin, bc *usecase.BookingCreate, bl *usecase.BookingList, ds *usecase.DashboardStats, sc *usecase.ServiceCreate, sd *usecase.ServiceDelete, sla *usecase.ServiceListActive, jwt *util.JWT) *Handlers {
+func NewHandlers(auth *usecase.AuthLogin, reg *usecase.AdminRegister, bc *usecase.BookingCreate, bl *usecase.BookingList, ds *usecase.DashboardStats, sc *usecase.ServiceCreate, sd *usecase.ServiceDelete, sla *usecase.ServiceListActive, jwt *util.JWT) *Handlers {
 	return &Handlers{
 		authLogin:         auth,
+		adminRegister:     reg,
 		bookingCreate:     bc,
 		bookingList:       bl,
 		dashboardStats:    ds,
@@ -37,6 +39,7 @@ func NewHandlers(auth *usecase.AuthLogin, bc *usecase.BookingCreate, bl *usecase
 
 func (h *Handlers) Register(app *fiber.App) {
 	app.Post("/admin/login", h.login)
+	app.Post("/admin/register", h.register)
 	app.Post("/bookings", h.createBooking)
 	app.Get("/bookings", h.listBookings)
 	app.Get("/admin/dashboard", h.jwtMiddleware, h.dashboard)
@@ -71,6 +74,24 @@ func (h *Handlers) login(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid_credentials"})
 	}
 	return c.JSON(fiber.Map{"token": token})
+}
+
+func (h *Handlers) register(c *fiber.Ctx) error {
+	var body struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid_body"})
+	}
+	id, err := h.adminRegister.Exec(body.Email, body.Password)
+	if err != nil {
+		if err.Error() == "email_exists" {
+			return c.Status(fiber.StatusConflict).JSON(fiber.Map{"error": "email_exists"})
+		}
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "register_failed"})
+	}
+	return c.JSON(fiber.Map{"id": id})
 }
 
 func (h *Handlers) createBooking(c *fiber.Ctx) error {

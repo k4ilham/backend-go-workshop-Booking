@@ -92,7 +92,7 @@ func main(){h,_:=bcrypt.GenerateFromPassword([]byte("secret"),bcrypt.DefaultCost
 Jalankan, ambil hasilnya sebagai `password_hash`, lalu:
 
 ```sql
-INSERT INTO users(email, password_hash) VALUES ('admin@example.com', '<bcrypt-hash>');
+INSERT INTO users(email, password_hash) VALUES ('admin@example.com', '$2a$10$zFgXR6CwvA.i17khfIhj6u.XV9xh.dncpo74hhRbPZeeztHGeO8Nu');
 ```
 
 Turso (SQLite via HTTP API):

@@ -39,6 +39,13 @@ func (r *UserRepo) GetByEmail(email string) (*domain.User, error) {
 	return &u, nil
 }
 
+func (r *UserRepo) Create(u domain.User) (int64, error) {
+	err := r.db.QueryRow(`INSERT INTO users (email, password_hash, created_at) VALUES ($1,$2,$3) RETURNING id`, u.Email, u.PasswordHash, u.CreatedAt).Scan(&u.ID)
+	if err != nil {
+		return 0, err
+	}
+	return u.ID, nil
+}
 func (r *BookingRepo) Create(b domain.Booking) (int64, error) {
 	err := r.db.QueryRow(
 		`INSERT INTO bookings (customer_name, customer_phone, service_id, booking_date, booking_time, status, created_at)
@@ -117,6 +124,7 @@ func (r *ServiceRepo) ListActive() ([]domain.Service, error) {
 
 var _ interface {
 	GetByEmail(string) (*domain.User, error)
+	Create(domain.User) (int64, error)
 } = (*UserRepo)(nil)
 var _ interface {
 	Create(domain.Booking) (int64, error)

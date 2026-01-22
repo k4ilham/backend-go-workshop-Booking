@@ -8,6 +8,7 @@ import (
 
 type UserRepository interface {
 	GetByEmail(email string) (*domain.User, error)
+	Create(u domain.User) (int64, error)
 }
 
 type BookingRepository interface {
