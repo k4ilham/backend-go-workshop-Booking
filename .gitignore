@@ -1,0 +1,23 @@
+# Build artifacts
+/bin/
+/build/
+/dist/
+*.exe
+*.out
+*.test
+
+# Coverage & logs
+/coverage/
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Environment
+.env
+*.env
